@@ -36432,13 +36432,12 @@ var app = (0, import_express.default)();
 app.use(import_express.default.json({ limit: "50mb" }));
 app.use(import_express.default.urlencoded({ limit: "50mb", extended: true }));
 app.use((req, res, next) => {
-  console.log("Raw request:", {
-    method: req.method,
-    url: req.url,
-    path: req.path,
-    originalUrl: req.originalUrl,
-    headers: req.headers
-  });
+  const pathFromQuery = req.query.path;
+  if (pathFromQuery) {
+    req.url = "/" + pathFromQuery;
+    delete req.query.path;
+  }
+  console.log("After rewrite:", req.method, req.url);
   next();
 });
 registerRoutes(app);
@@ -36448,8 +36447,7 @@ app.use("*", (req, res) => {
     error: "Not found",
     method: req.method,
     path: req.path,
-    url: req.url,
-    availableRoutes: ["/memories", "/tasks", "/gratitude", "/journal", "/habits"]
+    url: req.url
   });
 });
 app.use((err, _req, res, _next) => {
