@@ -1,11 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "functions": {
-    "api/index.js": {
-      "includeFiles": "dist/public/**",
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  }
+  "buildCommand": "npm run build"
 }
