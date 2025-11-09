@@ -17,11 +17,6 @@ await build({
     'express',
     'cookie-parser',
     'serverless-http',
-    'crypto',
-    'path',
-    'fs',
-    'http',
-    'url',
   ],
   alias: {
     '@shared': resolve(__dirname, 'shared'),
@@ -37,6 +32,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 `,
   },
-}).catch(() => process.exit(1));
+  logLevel: 'info',
+}).catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
 
 console.log('✅ API bundled successfully');

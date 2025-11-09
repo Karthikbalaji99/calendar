@@ -2,7 +2,7 @@ import express, { type Request, type Response, type NextFunction } from "express
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import { registerRoutes } from "../server/routes";
-import { serveStatic, log } from "../server/vite";
+import { serveStatic, log } from "./vite-prod";
 import serverless from "serverless-http";
 
 const app = express();
