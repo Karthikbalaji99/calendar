@@ -2,12 +2,14 @@ import { build } from 'esbuild';
 import { resolve } from 'path';
 import { statSync } from 'fs';
 
+const outfile = resolve('api/index.js');  // ✅ the bundled function goes in api/
+
 await build({
-  entryPoints: [resolve('api/index.ts')],     // ✅ still the same serverless entry
+  entryPoints: [resolve('api/index.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
-  outfile: resolve('dist/index.js'),          // ✅ output to dist for Vercel
+  outfile,   // ✅ output inside api folder
   external: [
     '@supabase/supabase-js',
     'multer',
@@ -27,14 +29,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);`,
   },
 }).catch((e) => {
-  console.error('Build failed:', e.message);
+  console.error('Build failed:', e);
   process.exit(1);
 });
 
-const stats = statSync('dist/index.js');       // ✅ updated to match output path
+const stats = statSync(outfile);  // ✅ check the correct file
 const kb = (stats.size / 1024).toFixed(1);
-console.log(`✅ ${kb}kb`);
-
-if (stats.size < 100000) {
-  console.warn(`⚠️  Small bundle (${kb}kb) - verify server code is included`);
-}
+console.log(`✅ Built server API: ${kb}kb`);
