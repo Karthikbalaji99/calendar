@@ -77,9 +77,16 @@ export function serveStatic(app: Express) {
   }
 
   if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+    // In serverless environments, avoid crashing the function. Return a helpful message.
+    app.get("*", (_req, res) => {
+      res
+        .status(500)
+        .set({ "Content-Type": "text/plain" })
+        .end(
+          `Client build not found. Expected at ${distPath}. Ensure 'npm run build' runs and vercel.json includes dist/public.`,
+        );
+    });
+    return;
   }
 
   // In production, also never serve SPA for API
