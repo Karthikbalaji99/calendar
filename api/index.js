@@ -36432,22 +36432,15 @@ var app = (0, import_express.default)();
 app.use(import_express.default.json({ limit: "50mb" }));
 app.use(import_express.default.urlencoded({ limit: "50mb", extended: true }));
 app.use((req, res, next) => {
-  const pathFromQuery = req.query.path;
-  if (pathFromQuery) {
-    req.url = "/" + pathFromQuery;
-    delete req.query.path;
-  }
-  console.log("After rewrite:", req.method, req.url);
+  console.log("Request received:", req.method, req.url, req.path);
   next();
 });
 registerRoutes(app);
 app.use("*", (req, res) => {
-  console.log("No route matched for:", req.method, req.url, req.path);
+  console.log("No route matched:", req.method, req.url);
   res.status(404).json({
     error: "Not found",
-    method: req.method,
-    path: req.path,
-    url: req.url
+    requestedPath: req.url
   });
 });
 app.use((err, _req, res, _next) => {

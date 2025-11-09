@@ -7,26 +7,18 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// Rewrite the path based on query parameter
 app.use((req, res, next) => {
-  const pathFromQuery = req.query.path as string;
-  if (pathFromQuery) {
-    req.url = '/' + pathFromQuery;
-    delete req.query.path;
-  }
-  console.log('After rewrite:', req.method, req.url);
+  console.log('Request received:', req.method, req.url, req.path);
   next();
 });
 
 registerRoutes(app);
 
 app.use('*', (req, res) => {
-  console.log('No route matched for:', req.method, req.url, req.path);
+  console.log('No route matched:', req.method, req.url);
   res.status(404).json({ 
     error: 'Not found',
-    method: req.method,
-    path: req.path,
-    url: req.url
+    requestedPath: req.url
   });
 });
 
