@@ -36262,7 +36262,7 @@ var habitCheckinSchema = insertHabitCheckinSchema.extend({
 });
 
 // src-api/routes.ts
-async function registerRoutes(app2) {
+function registerRoutes(app2) {
   const upload = (0, import_multer.default)({ storage: import_multer.default.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
   app2.post("/upload", upload.single("file"), async (req, res) => {
     try {
@@ -36431,17 +36431,36 @@ var import_serverless_http = __toESM(require_serverless_http(), 1);
 var app = (0, import_express.default)();
 app.use(import_express.default.json({ limit: "50mb" }));
 app.use(import_express.default.urlencoded({ limit: "50mb", extended: true }));
-await registerRoutes(app);
+app.use((req, res, next) => {
+  const route = req.query.route;
+  if (route) {
+    req.url = `/${route}`;
+  }
+  console.log("Request received:", {
+    method: req.method,
+    path: req.path,
+    url: req.url
+  });
+  next();
+});
+registerRoutes(app);
+app.use("*", (req, res) => {
+  console.log("No route matched for:", req.method, req.url);
+  res.status(404).json({
+    error: "Not found",
+    path: req.path,
+    url: req.url
+  });
+});
 app.use((err, _req, res, _next) => {
+  console.error("Error:", err);
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
 });
-var handler = (0, import_serverless_http.default)(app);
-var index_default = handler;
+var index_default = (0, import_serverless_http.default)(app);
 export {
-  index_default as default,
-  handler
+  index_default as default
 };
 /*! Bundled license information:
 
