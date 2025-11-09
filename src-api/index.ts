@@ -7,9 +7,15 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// Add debug logging to see what path we're receiving
+// Debug logging
 app.use((req, res, next) => {
-  console.log('Request:', req.method, req.path, req.url);
+  console.log('Full request:', {
+    method: req.method,
+    path: req.path,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    baseUrl: req.baseUrl
+  });
   next();
 });
 
@@ -19,6 +25,17 @@ try {
   console.error('Failed to register routes:', error);
 }
 
+// Add a 404 handler to see what routes are being hit
+app.use('*', (req, res) => {
+  console.log('No route matched for:', req.method, req.originalUrl);
+  res.status(404).json({ 
+    error: 'Not found',
+    path: req.path,
+    url: req.url,
+    originalUrl: req.originalUrl
+  });
+});
+
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Error:', err);
   const status = err.status || err.statusCode || 500;
@@ -26,7 +43,5 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message, error: err.stack });
 });
 
-// Use basePath option to handle /api prefix
-export default serverless(app, {
-  basePath: '/api'
-});
+// Remove basePath - let's handle it differently
+export default serverless(app);
