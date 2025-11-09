@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabase } from '../src-api/supabase';
+import { getSupabase } from '../src-api/supabase.js';
 import multiparty from 'multiparty';
 import { readFile } from 'fs/promises';
 import path from 'path';

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { storage } from '../src-api/storage';
-import { insertJournalEntrySchema } from '../src-api/schema';
+import { storage } from '../src-api/storage.js';
+import { insertJournalEntrySchema } from '../src-api/schema.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
