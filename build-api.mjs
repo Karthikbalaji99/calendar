@@ -9,15 +9,13 @@ await build({
   entryPoints: ['api/index.ts'],
   bundle: true,
   platform: 'node',
+  target: 'node22',
   format: 'esm',
   outfile: 'api/index.js',
-  external: [
-    '@supabase/supabase-js',
-    'multer',
-    'express',
-    'cookie-parser',
-    'serverless-http',
-  ],
+  packages: 'external',
+  mainFields: ['module', 'main'],
+  conditions: ['import', 'module', 'node'],
+  resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs'],
   alias: {
     '@shared': resolve(__dirname, 'shared'),
   },
@@ -32,9 +30,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 `,
   },
+  minify: false,
+  sourcemap: false,
+  treeShaking: true,
   logLevel: 'info',
 }).catch((e) => {
-  console.error(e);
+  console.error('Build failed:', e);
   process.exit(1);
 });
 
