@@ -2,7 +2,7 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 import { storage } from "./storage";
 import {
   insertMemorySchema,
@@ -24,6 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const ext = path.extname(req.file.originalname || "").toLowerCase() || ".png";
       const filename = `${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
+      const supabase = getSupabase();
       const { data, error } = await supabase.storage
         .from("memories")
         .upload(filename, req.file.buffer, { contentType: req.file.mimetype, upsert: false });

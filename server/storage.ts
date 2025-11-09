@@ -14,7 +14,7 @@ import {
   type HabitCheckin,
   type InsertHabitCheckin,
 } from "@shared/schema";
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -97,6 +97,7 @@ const mapHabitCheckin = (r: any): HabitCheckin => ({
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")
       .select("id, username, password")
@@ -107,6 +108,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")
       .select("id, username, password")
@@ -117,6 +119,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("users")
       .insert(insertUser)
@@ -127,6 +130,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllMemories(): Promise<Memory[]> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("memories")
       .select("*")
@@ -136,6 +140,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMemory(memory: InsertMemory): Promise<Memory> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("memories")
       .insert({
@@ -151,6 +156,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllGratitudeLogs(): Promise<GratitudeLog[]> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("gratitude_logs")
       .select("*")
@@ -160,6 +166,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createGratitudeLog(log: InsertGratitudeLog): Promise<GratitudeLog> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("gratitude_logs")
       .insert(log)
@@ -170,6 +177,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllJournalEntries(): Promise<JournalEntry[]> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("journal_entries")
       .select("*")
@@ -179,6 +187,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("journal_entries")
       .insert({
@@ -195,6 +204,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllTasks(): Promise<Task[]> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
@@ -204,6 +214,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTask(task: InsertTask): Promise<Task> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("tasks")
       .insert({
@@ -227,6 +238,7 @@ export class DatabaseStorage implements IStorage {
     if (updates.completed !== undefined) payload.completed = updates.completed;
     if (updates.dueDate !== undefined) payload.due_date = updates.dueDate ?? null;
 
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("tasks")
       .update(payload)
@@ -238,6 +250,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllHabits(): Promise<Habit[]> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("habits")
       .select("*")
@@ -247,6 +260,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createHabit(habit: InsertHabit): Promise<Habit> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("habits")
       .insert(habit)
@@ -257,6 +271,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllHabitCheckins(): Promise<HabitCheckin[]> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("habit_checkins")
       .select("*")
@@ -266,6 +281,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrUpdateHabitCheckin(checkin: InsertHabitCheckin): Promise<HabitCheckin> {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("habit_checkins")
       .upsert(
