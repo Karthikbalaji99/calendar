@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { type Server } from "http";
 
 export function log(message: string, source = "express") {
@@ -49,12 +50,8 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
-      const clientTemplate = path.resolve(
-        import.meta.dirname,
-        "..",
-        "client",
-        "index.html",
-      );
+      const moduleDir = typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+      const clientTemplate = path.resolve(moduleDir, "..", "client", "index.html");
 
       // always reload the index.html file from disk in case it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
@@ -70,10 +67,11 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
+  const moduleDir = typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
   // Try dist/public next to bundled server (esbuild), else project-level dist/public
-  let distPath = path.resolve(import.meta.dirname, "public");
+  let distPath = path.resolve(moduleDir, "public");
   if (!fs.existsSync(distPath)) {
-    distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
+    distPath = path.resolve(moduleDir, "..", "dist", "public");
   }
 
   if (!fs.existsSync(distPath)) {
