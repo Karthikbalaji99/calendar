@@ -7,14 +7,18 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// Debug logging
+// Reconstruct the original path from query params
 app.use((req, res, next) => {
-  console.log('Full request:', {
+  const route = req.query.route;
+  if (route) {
+    req.url = `/${route}`;
+    req.path = `/${route}`;
+  }
+  console.log('Reconstructed request:', {
     method: req.method,
     path: req.path,
     url: req.url,
-    originalUrl: req.originalUrl,
-    baseUrl: req.baseUrl
+    query: req.query
   });
   next();
 });
@@ -25,14 +29,12 @@ try {
   console.error('Failed to register routes:', error);
 }
 
-// Add a 404 handler to see what routes are being hit
 app.use('*', (req, res) => {
-  console.log('No route matched for:', req.method, req.originalUrl);
+  console.log('No route matched for:', req.method, req.url);
   res.status(404).json({ 
     error: 'Not found',
     path: req.path,
-    url: req.url,
-    originalUrl: req.originalUrl
+    url: req.url
   });
 });
 
@@ -43,5 +45,4 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message, error: err.stack });
 });
 
-// Remove basePath - let's handle it differently
 export default serverless(app);
