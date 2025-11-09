@@ -1,30 +1,13 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
-  "routes": [
-    {
-      "src": "/api/tasks",
-      "dest": "/api/index.js?route=tasks"
-    },
-    {
-      "src": "/api/memories", 
-      "dest": "/api/index.js?route=memories"
-    },
-    {
-      "src": "/api/gratitude",
-      "dest": "/api/index.js?route=gratitude"
-    },
-    {
-      "src": "/api/journal",
-      "dest": "/api/index.js?route=journal"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 10
     }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index.js" }
   ]
 }

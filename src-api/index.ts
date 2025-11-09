@@ -9,10 +9,10 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Reconstruct the original path from query params
 app.use((req, res, next) => {
-  const route = req.query.route;
+  const route = req.query.route as string;
   if (route) {
     req.url = `/${route}`;
-    req.path = `/${route}`;
+    // Don't modify req.path directly, let Express recalculate it from req.url
   }
   console.log('Reconstructed request:', {
     method: req.method,
