@@ -15,7 +15,7 @@ import {
 export function registerRoutes(app: Express): void {
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
-  app.post("/api/upload", upload.single("file"), async (req: Request & { file?: Express.Multer.File }, res) => {
+  app.post("/upload", upload.single("file"), async (req: Request & { file?: Express.Multer.File }, res) => {
     try {
       if (!req.file) {
         res.status(400).json({ error: "file required" });
@@ -44,7 +44,8 @@ export function registerRoutes(app: Express): void {
       res.status(500).json({ error: e?.message || "upload failed" });
     }
   });
-  app.get("/api/memories", async (req, res) => {
+  
+  app.get("/memories", async (req, res) => {
     try {
       const memories = await storage.getAllMemories();
       res.json(memories);
@@ -54,7 +55,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/memories", async (req, res) => {
+  app.post("/memories", async (req, res) => {
     try {
       const validatedData = insertMemorySchema.parse(req.body);
       const memory = await storage.createMemory(validatedData);
@@ -65,7 +66,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/gratitude", async (req, res) => {
+  app.get("/gratitude", async (req, res) => {
     try {
       const logs = await storage.getAllGratitudeLogs();
       res.json(logs);
@@ -75,7 +76,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/gratitude", async (req, res) => {
+  app.post("/gratitude", async (req, res) => {
     try {
       const validatedData = insertGratitudeLogSchema.parse(req.body);
       const log = await storage.createGratitudeLog(validatedData);
@@ -86,7 +87,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/journal", async (req, res) => {
+  app.get("/journal", async (req, res) => {
     try {
       const entries = await storage.getAllJournalEntries();
       res.json(entries);
@@ -96,7 +97,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/journal", async (req, res) => {
+  app.post("/journal", async (req, res) => {
     try {
       const validatedData = insertJournalEntrySchema.parse(req.body);
       const entry = await storage.createJournalEntry(validatedData);
@@ -107,7 +108,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/tasks", async (req, res) => {
+  app.get("/tasks", async (req, res) => {
     try {
       const tasks = await storage.getAllTasks();
       res.json(tasks);
@@ -117,7 +118,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/tasks", async (req, res) => {
+  app.post("/tasks", async (req, res) => {
     try {
       const validatedData = insertTaskSchema.parse(req.body);
       const task = await storage.createTask(validatedData);
@@ -128,7 +129,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.patch("/api/tasks/:id", async (req, res) => {
+  app.patch("/tasks/:id", async (req, res) => {
     try {
       const { id } = req.params;
       const { completed } = req.body;
@@ -150,7 +151,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/habits", async (req, res) => {
+  app.get("/habits", async (req, res) => {
     try {
       const habits = await storage.getAllHabits();
       res.json(habits);
@@ -160,7 +161,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/habits", async (req, res) => {
+  app.post("/habits", async (req, res) => {
     try {
       const validatedData = insertHabitSchema.parse(req.body);
       const habit = await storage.createHabit(validatedData);
@@ -171,7 +172,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/habits/checkins", async (req, res) => {
+  app.get("/habits/checkins", async (req, res) => {
     try {
       const checkins = await storage.getAllHabitCheckins();
       res.json(checkins);
@@ -181,7 +182,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/habits/checkins", async (req, res) => {
+  app.post("/habits/checkins", async (req, res) => {
     try {
       const validatedData = insertHabitCheckinSchema.parse(req.body);
       const checkin = await storage.createOrUpdateHabitCheckin(validatedData);
@@ -191,6 +192,4 @@ export function registerRoutes(app: Express): void {
       res.status(400).json({ error: "Invalid habit checkin data" });
     }
   });
-
-
 }
