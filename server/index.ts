@@ -59,15 +59,19 @@ if (SITE_PASSWORD) {
       const next = (req.query?.next as string) || "/";
       return res.redirect(next);
     }
-    res.status(401).send(renderLogin("/", "Invalid password"));
+    return res.status(401).send(renderLogin("/", "Invalid password"));
   });
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith("/__auth")) return next();
     const authed = isAuthed(req);
     if (!authed) {
-      if (req.path.startsWith("/api")) return res.status(401).json({ message: "Unauthorized" });
-      if (req.method === "GET") return res.status(401).send(renderLogin(req.originalUrl));
+      if (req.path.startsWith("/api")) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      if (req.method === "GET") {
+        return res.status(401).send(renderLogin(req.originalUrl));
+      }
       return res.status(401).json({ message: "Unauthorized" });
     }
     next();
