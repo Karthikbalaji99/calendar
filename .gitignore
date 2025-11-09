@@ -5,4 +5,3 @@ server
 *.log
 dist
 .local
-api/index.js
