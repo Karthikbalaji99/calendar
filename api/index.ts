@@ -8,10 +8,8 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-const ready = registerRoutes(app).then(() => {
-  serveStatic(app);
-  return app;
-});
+await registerRoutes(app); // direct await instead of deferred Promise
+serveStatic(app);
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
@@ -20,9 +18,5 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   log(`error ${status}: ${message}`);
 });
 
-const handler = serverless(app);
-
-export default async function runtimeWrapper(req: Request, res: Response) {
-  await ready;
-  return handler(req, res);
-}
+export const handler = serverless(app);
+export default handler;
