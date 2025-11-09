@@ -2,20 +2,16 @@ import { build } from 'esbuild';
 import { resolve } from 'path';
 import { statSync } from 'fs';
 
-const outfile = resolve('api/index.js');  // ✅ the bundled function goes in api/
+const outfile = resolve('api/index.js');  // Output to api/
 
 await build({
-  entryPoints: [resolve('api/index.ts')],
+  entryPoints: [resolve('src-api/index.ts')],  // Input from src-api/
   bundle: true,
   platform: 'node',
   format: 'esm',
-  outfile,   // ✅ output inside api folder
+  outfile,
   external: [
     '@supabase/supabase-js',
-    'multer',
-    'express',
-    'cookie-parser',
-    'serverless-http',
   ],
   alias: {
     '@shared': resolve(process.cwd(), 'shared'),
@@ -33,6 +29,6 @@ const __dirname = dirname(__filename);`,
   process.exit(1);
 });
 
-const stats = statSync(outfile);  // ✅ check the correct file
+const stats = statSync(outfile);
 const kb = (stats.size / 1024).toFixed(1);
 console.log(`✅ Built server API: ${kb}kb`);
