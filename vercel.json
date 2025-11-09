@@ -1,9 +1,8 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/public",
   "routes": [
-    { "src": "^/api/.*", "dest": "/api/index" },
+    { "src": "^/api($|/.*)", "dest": "/api/index" },
     { "handle": "filesystem" },
     { "src": ".*", "dest": "/index.html" }
   ]
