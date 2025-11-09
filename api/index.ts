@@ -54,7 +54,7 @@ if (SITE_PASSWORD) {
 }
 
 // Register routes and static serving (production)
-await registerRoutes(app);
+void registerRoutes(app);
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
@@ -66,4 +66,3 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 serveStatic(app);
 
 export default serverless(app);
-
