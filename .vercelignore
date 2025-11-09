@@ -1,0 +1,12 @@
+node_modules
+.git
+.env.local
+.env.*.local
+*.log
+.DS_Store
+server
+client/src
+vite.config.ts
+tsconfig.json
+tailwind.config.js
+postcss.config.js
