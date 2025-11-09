@@ -3,11 +3,11 @@ import { resolve } from 'path';
 import { statSync } from 'fs';
 
 await build({
-  entryPoints: ['api/index.ts'],
+  entryPoints: [resolve('api/index.ts')],     // ✅ still the same serverless entry
   bundle: true,
   platform: 'node',
   format: 'esm',
-  outfile: 'api/index.js',
+  outfile: resolve('dist/index.js'),          // ✅ output to dist for Vercel
   external: [
     '@supabase/supabase-js',
     'multer',
@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);`,
   process.exit(1);
 });
 
-const stats = statSync('api/index.js');
+const stats = statSync('dist/index.js');       // ✅ updated to match output path
 const kb = (stats.size / 1024).toFixed(1);
 console.log(`✅ ${kb}kb`);
 
