@@ -7,29 +7,28 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// Reconstruct the original path from query params
+// Add logging
 app.use((req, res, next) => {
-  const route = req.query.route as string;
-  if (route) {
-    req.url = `/${route}`;
-  }
-  console.log('Request received:', {
+  console.log('Raw request:', {
     method: req.method,
+    url: req.url,
     path: req.path,
-    url: req.url
+    originalUrl: req.originalUrl,
+    headers: req.headers
   });
   next();
 });
 
-// Call synchronously - no await needed
 registerRoutes(app);
 
 app.use('*', (req, res) => {
-  console.log('No route matched for:', req.method, req.url);
+  console.log('No route matched for:', req.method, req.url, req.path);
   res.status(404).json({ 
     error: 'Not found',
+    method: req.method,
     path: req.path,
-    url: req.url
+    url: req.url,
+    availableRoutes: ['/memories', '/tasks', '/gratitude', '/journal', '/habits']
   });
 });
 
@@ -40,4 +39,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message });
 });
 
-export default serverless(app);
+// Use binary: true for file uploads
+export default serverless(app, {
+  binary: true
+});

@@ -36432,24 +36432,24 @@ var app = (0, import_express.default)();
 app.use(import_express.default.json({ limit: "50mb" }));
 app.use(import_express.default.urlencoded({ limit: "50mb", extended: true }));
 app.use((req, res, next) => {
-  const route = req.query.route;
-  if (route) {
-    req.url = `/${route}`;
-  }
-  console.log("Request received:", {
+  console.log("Raw request:", {
     method: req.method,
+    url: req.url,
     path: req.path,
-    url: req.url
+    originalUrl: req.originalUrl,
+    headers: req.headers
   });
   next();
 });
 registerRoutes(app);
 app.use("*", (req, res) => {
-  console.log("No route matched for:", req.method, req.url);
+  console.log("No route matched for:", req.method, req.url, req.path);
   res.status(404).json({
     error: "Not found",
+    method: req.method,
     path: req.path,
-    url: req.url
+    url: req.url,
+    availableRoutes: ["/memories", "/tasks", "/gratitude", "/journal", "/habits"]
   });
 });
 app.use((err, _req, res, _next) => {
@@ -36458,7 +36458,9 @@ app.use((err, _req, res, _next) => {
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
 });
-var index_default = (0, import_serverless_http.default)(app);
+var index_default = (0, import_serverless_http.default)(app, {
+  binary: true
+});
 export {
   index_default as default
 };
