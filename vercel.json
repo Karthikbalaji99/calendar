@@ -1,16 +1,13 @@
 {
-  "version": 2,
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
   "functions": {
-  "dist/index.js": {
-    "runtime": "nodejs22.x",
-    "maxDuration": 10
-  }
-},
+    "api/index.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "routes": [
-    { "src": "^/api(/.*)?$", "dest": "/api/index.js" },
-    { "src": "^/favicon\\.ico$", "dest": "/favicon.png" },
+    { "src": "^/api(/.*)?$", "dest": "api/index.js" },
     { "handle": "filesystem" },
     { "src": ".*", "dest": "/index.html" }
   ]
