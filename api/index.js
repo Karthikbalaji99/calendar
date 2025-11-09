@@ -36264,7 +36264,7 @@ var habitCheckinSchema = insertHabitCheckinSchema.extend({
 // src-api/routes.ts
 function registerRoutes(app2) {
   const upload = (0, import_multer.default)({ storage: import_multer.default.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
-  app2.post("/upload", upload.single("file"), async (req, res) => {
+  app2.post("/api/upload", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         res.status(400).json({ error: "file required" });
@@ -36291,7 +36291,7 @@ function registerRoutes(app2) {
       res.status(500).json({ error: e?.message || "upload failed" });
     }
   });
-  app2.get("/memories", async (req, res) => {
+  app2.get("/api/memories", async (req, res) => {
     try {
       const memories = await storage.getAllMemories();
       res.json(memories);
@@ -36300,7 +36300,7 @@ function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch memories" });
     }
   });
-  app2.post("/memories", async (req, res) => {
+  app2.post("/api/memories", async (req, res) => {
     try {
       const validatedData = insertMemorySchema.parse(req.body);
       const memory = await storage.createMemory(validatedData);
@@ -36310,7 +36310,7 @@ function registerRoutes(app2) {
       res.status(400).json({ error: "Invalid memory data" });
     }
   });
-  app2.get("/gratitude", async (req, res) => {
+  app2.get("/api/gratitude", async (req, res) => {
     try {
       const logs = await storage.getAllGratitudeLogs();
       res.json(logs);
@@ -36319,7 +36319,7 @@ function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch gratitude logs" });
     }
   });
-  app2.post("/gratitude", async (req, res) => {
+  app2.post("/api/gratitude", async (req, res) => {
     try {
       const validatedData = insertGratitudeLogSchema.parse(req.body);
       const log = await storage.createGratitudeLog(validatedData);
@@ -36329,7 +36329,7 @@ function registerRoutes(app2) {
       res.status(400).json({ error: "Invalid gratitude log data" });
     }
   });
-  app2.get("/journal", async (req, res) => {
+  app2.get("/api/journal", async (req, res) => {
     try {
       const entries = await storage.getAllJournalEntries();
       res.json(entries);
@@ -36338,7 +36338,7 @@ function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch journal entries" });
     }
   });
-  app2.post("/journal", async (req, res) => {
+  app2.post("/api/journal", async (req, res) => {
     try {
       const validatedData = insertJournalEntrySchema.parse(req.body);
       const entry = await storage.createJournalEntry(validatedData);
@@ -36348,7 +36348,7 @@ function registerRoutes(app2) {
       res.status(400).json({ error: "Invalid journal entry data" });
     }
   });
-  app2.get("/tasks", async (req, res) => {
+  app2.get("/api/tasks", async (req, res) => {
     try {
       const tasks = await storage.getAllTasks();
       res.json(tasks);
@@ -36357,7 +36357,7 @@ function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch tasks" });
     }
   });
-  app2.post("/tasks", async (req, res) => {
+  app2.post("/api/tasks", async (req, res) => {
     try {
       const validatedData = insertTaskSchema.parse(req.body);
       const task = await storage.createTask(validatedData);
@@ -36367,7 +36367,7 @@ function registerRoutes(app2) {
       res.status(400).json({ error: "Invalid task data" });
     }
   });
-  app2.patch("/tasks/:id", async (req, res) => {
+  app2.patch("/api/tasks/:id", async (req, res) => {
     try {
       const { id } = req.params;
       const { completed } = req.body;
@@ -36386,7 +36386,7 @@ function registerRoutes(app2) {
       res.status(400).json({ error: "Failed to update task" });
     }
   });
-  app2.get("/habits", async (req, res) => {
+  app2.get("/api/habits", async (req, res) => {
     try {
       const habits = await storage.getAllHabits();
       res.json(habits);
@@ -36395,7 +36395,7 @@ function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch habits" });
     }
   });
-  app2.post("/habits", async (req, res) => {
+  app2.post("/api/habits", async (req, res) => {
     try {
       const validatedData = insertHabitSchema.parse(req.body);
       const habit = await storage.createHabit(validatedData);
@@ -36405,7 +36405,7 @@ function registerRoutes(app2) {
       res.status(400).json({ error: "Invalid habit data" });
     }
   });
-  app2.get("/habits/checkins", async (req, res) => {
+  app2.get("/api/habits/checkins", async (req, res) => {
     try {
       const checkins = await storage.getAllHabitCheckins();
       res.json(checkins);
@@ -36414,7 +36414,7 @@ function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch habit checkins" });
     }
   });
-  app2.post("/habits/checkins", async (req, res) => {
+  app2.post("/api/habits/checkins", async (req, res) => {
     try {
       const validatedData = insertHabitCheckinSchema.parse(req.body);
       const checkin = await storage.createOrUpdateHabitCheckin(validatedData);
