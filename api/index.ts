@@ -46,7 +46,10 @@ if (SITE_PASSWORD) {
     const authed = isAuthed(req);
     if (!authed) {
       if (req.path.startsWith("/api")) return res.status(401).json({ message: "Unauthorized" });
-      if (req.method === "GET") return res.status(401).send(renderLogin(req.originalUrl));
+      if (req.method === "GET") {
+  res.status(401).set({ "Content-Type": "text/html" }).send(renderLogin(req.originalUrl));
+  return;
+}
       return res.status(401).json({ message: "Unauthorized" });
     }
     next();
