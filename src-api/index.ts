@@ -12,22 +12,17 @@ app.use((req, res, next) => {
   const route = req.query.route as string;
   if (route) {
     req.url = `/${route}`;
-    // Don't modify req.path directly, let Express recalculate it from req.url
   }
-  console.log('Reconstructed request:', {
+  console.log('Request received:', {
     method: req.method,
     path: req.path,
-    url: req.url,
-    query: req.query
+    url: req.url
   });
   next();
 });
 
-try {
-  await registerRoutes(app);
-} catch (error) {
-  console.error('Failed to register routes:', error);
-}
+// Call synchronously - no await needed
+registerRoutes(app);
 
 app.use('*', (req, res) => {
   console.log('No route matched for:', req.method, req.url);
@@ -42,7 +37,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Error:', err);
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";
-  res.status(status).json({ message, error: err.stack });
+  res.status(status).json({ message });
 });
 
 export default serverless(app);
