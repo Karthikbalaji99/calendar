@@ -12,7 +12,7 @@ import {
   insertHabitCheckinSchema,
 } from "./schema.js";
 
-export async function registerRoutes(app: Express): Promise<void> {
+export function registerRoutes(app: Express): void {
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
   app.post("/upload", upload.single("file"), async (req: Request & { file?: Express.Multer.File }, res) => {
