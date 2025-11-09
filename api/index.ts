@@ -38,7 +38,8 @@ if (SITE_PASSWORD) {
       const next = (req.query?.next as string) || "/";
       return res.redirect(next);
     }
-    return res.status(401).send(renderLogin("/", "Invalid password"));
+    res.status(200).send(renderLogin("/", "Invalid password"));
+    return;
   });
 
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -49,7 +50,8 @@ if (SITE_PASSWORD) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       if (req.method === "GET") {
-        return res.status(401).set({ "Content-Type": "text/html" }).send(renderLogin(req.originalUrl));
+        res.status(200).set({ "Content-Type": "text/html" }).send(renderLogin(req.originalUrl));
+        return;
       }
       return res.status(401).json({ message: "Unauthorized" });
     }
