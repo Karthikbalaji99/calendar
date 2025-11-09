@@ -68,20 +68,22 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   const moduleDir = typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
-  // Try dist/public next to bundled server (esbuild), else project-level dist/public
-  let distPath = path.resolve(moduleDir, "public");
-  if (!fs.existsSync(distPath)) {
-    distPath = path.resolve(moduleDir, "..", "dist", "public");
-  }
+  const candidates = [
+    path.resolve(process.cwd(), "dist", "public"),
+    path.resolve(moduleDir, "public"),
+    path.resolve(moduleDir, "..", "dist", "public"),
+    path.resolve(moduleDir, "..", "..", "dist", "public"),
+  ];
+  const distPath = candidates.find((p) => fs.existsSync(p));
 
-  if (!fs.existsSync(distPath)) {
+  if (!distPath) {
     // In serverless environments, avoid crashing the function. Return a helpful message.
     app.get("*", (_req, res) => {
       res
         .status(500)
         .set({ "Content-Type": "text/plain" })
         .end(
-          `Client build not found. Expected at ${distPath}. Ensure 'npm run build' runs and vercel.json includes dist/public.`,
+          `Client build not found. Looked in: \n- ${candidates.join("\n- ")}\nMake sure 'npm run build' runs and vercel.json includes dist/public.`,
         );
     });
     return;
