@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,18 @@ export default function JournalPage() {
     });
   };
 
-  const ownerEntries = entries.filter((e) => e.owner === owner);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const ownerEntries = useMemo(() => {
+    const inRange = (d: string) => {
+      if (fromDate && d < fromDate) return false;
+      if (toDate && d > toDate) return false;
+      return true;
+    };
+    return entries
+      .filter((e) => e.owner === owner && inRange(e.date))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [entries, owner, fromDate, toDate]);
 
   return (
     <div className="h-full overflow-auto p-6">
@@ -88,6 +99,10 @@ export default function JournalPage() {
                 </SelectItem>
               </SelectContent>
             </Select>
+            <div className="hidden md:flex items-center gap-2">
+              <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-40" />
+              <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-40" />
+            </div>
           </div>
         </div>
 

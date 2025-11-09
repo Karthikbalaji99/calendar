@@ -26,7 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Task, InsertTask } from "@shared/schema";
 import { OwnerFilter } from "@/components/owner-filter";
-import { Plus, Calendar, CheckCircle2 } from "lucide-react";
+import { Plus, Calendar, CheckCircle2, BarChart2, CheckCircle, ArrowUpRight, Star } from "lucide-react";
 import pandaIcon from "@assets/generated_images/Panda_character_avatar_icon_c3ecdae1.png";
 import cookieIcon from "@assets/generated_images/Cookie_character_avatar_icon_f4fe2d95.png";
 import bothIcon from "@assets/generated_images/Combined_panda_cookie_heart_093d2d02.png";
@@ -83,7 +83,8 @@ export default function TasksPage() {
     }
     createMutation.mutate({
       ...formData,
-      dueDate: formData.dueDate || null,
+      completed: false,
+      dueDate: formData.dueDate || undefined,
     });
   };
 
@@ -120,20 +121,45 @@ export default function TasksPage() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                {completedCount} of {totalCount} tasks completed
-              </span>
-              <span className="font-medium">{Math.round(progressPercent)}%</span>
-            </div>
-            <Progress value={progressPercent} data-testid="progress-tasks" />
-          </CardContent>
-        </Card>
+        {/* Stats summary */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-muted-foreground">Total Tasks</div>
+                <div className="text-3xl font-semibold">{totalCount}</div>
+              </div>
+              <BarChart2 className="w-6 h-6 text-primary" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-muted-foreground">Completed</div>
+                <div className="text-3xl font-semibold">{completedCount}</div>
+              </div>
+              <CheckCircle className="w-6 h-6 text-chart-2" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-muted-foreground">Pending</div>
+                <div className="text-3xl font-semibold">{totalCount - completedCount}</div>
+              </div>
+              <ArrowUpRight className="w-6 h-6 text-accent-foreground" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-muted-foreground">Completion</div>
+                <div className="text-3xl font-semibold">{Math.round(progressPercent)}%</div>
+              </div>
+              <Star className="w-6 h-6 text-yellow-500" />
+            </CardContent>
+          </Card>
+        </div>
 
         {pendingTasks.length === 0 && completedTasks.length === 0 ? (
           <Card className="p-12">
@@ -149,7 +175,7 @@ export default function TasksPage() {
           <div className="space-y-6">
             {pendingTasks.length > 0 && (
               <div className="space-y-3">
-                <h2 className="text-xl font-semibold">Pending</h2>
+                <h2 className="text-xl font-semibold">Pending Tasks</h2>
                 {pendingTasks.map((task) => (
                   <Card
                     key={task.id}
@@ -194,7 +220,7 @@ export default function TasksPage() {
               <div className="space-y-3">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-chart-2" />
-                  Completed
+                  Completed Tasks
                 </h2>
                 {completedTasks.map((task) => (
                   <Card

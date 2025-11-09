@@ -24,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Habit, HabitCheckin, InsertHabit, InsertHabitCheckin } from "@shared/schema";
 import { OwnerFilter } from "@/components/owner-filter";
-import { Plus, TrendingUp, Flame } from "lucide-react";
+import { Plus, TrendingUp, Flame, ChevronLeft, ChevronRight } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import pandaIcon from "@assets/generated_images/Panda_character_avatar_icon_c3ecdae1.png";
 import cookieIcon from "@assets/generated_images/Cookie_character_avatar_icon_f4fe2d95.png";
@@ -32,6 +32,8 @@ import bothIcon from "@assets/generated_images/Combined_panda_cookie_heart_093d2
 
 export default function HabitsPage() {
   const [filter, setFilter] = useState<"all" | "panda" | "cookie" | "both">("all");
+  const [habitFilter, setHabitFilter] = useState<string>("all");
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -82,7 +84,9 @@ export default function HabitsPage() {
     createHabitMutation.mutate(formData);
   };
 
-  const filteredHabits = habits.filter((habit) => filter === "all" || habit.owner === filter);
+  const filteredHabits = habits
+    .filter((habit) => filter === "all" || habit.owner === filter)
+    .filter((habit) => habitFilter === "all" || habit.id === habitFilter);
 
   const getOwnerIcon = (owner: string) => {
     if (owner === "panda") return pandaIcon;
@@ -90,17 +94,18 @@ export default function HabitsPage() {
     return bothIcon;
   };
 
-  const getLast7Days = () => {
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      days.push(date.toISOString().split("T")[0]);
+  const getMonthDays = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const last = new Date(year, month + 1, 0).getDate();
+    const days: string[] = [];
+    for (let d = 1; d <= last; d++) {
+      days.push(new Date(year, month, d).toISOString().split("T")[0]);
     }
     return days;
   };
 
-  const last7Days = getLast7Days();
+  const monthDays = getMonthDays(currentDate);
 
   const isChecked = (habitId: string, date: string) => {
     return checkins.some((c) => c.habitId === habitId && c.date === date && c.completed);
@@ -113,7 +118,7 @@ export default function HabitsPage() {
 
   const getStreak = (habitId: string) => {
     let streak = 0;
-    const sortedDates = [...last7Days].reverse();
+    const sortedDates = [...monthDays].reverse();
     for (const date of sortedDates) {
       if (isChecked(habitId, date)) {
         streak++;
@@ -125,8 +130,8 @@ export default function HabitsPage() {
   };
 
   const getChartData = (habitId: string) => {
-    return last7Days.map((date) => ({
-      date: new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    return monthDays.map((date) => ({
+      date: new Date(date).getDate().toString(),
       completed: isChecked(habitId, date) ? 1 : 0,
     }));
   };
@@ -166,6 +171,40 @@ export default function HabitsPage() {
           </Card>
         ) : (
           <div className="space-y-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-xl font-semibold">
+                  {currentDate.toLocaleString("en-US", { month: "long", year: "numeric" })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-3">
+                <Select value={habitFilter} onValueChange={setHabitFilter}>
+                  <SelectTrigger className="w-48" aria-label="Filter by habit">
+                    <SelectValue placeholder="All habits" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All habits</SelectItem>
+                    {habits.map((h) => (
+                      <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             {filteredHabits.map((habit) => {
               const streak = getStreak(habit.id);
               const chartData = getChartData(habit.id);
@@ -222,22 +261,19 @@ export default function HabitsPage() {
                       </ResponsiveContainer>
                     </div>
 
-                    <div className="flex gap-2 justify-between">
-                      {last7Days.map((date) => (
-                        <div key={date} className="flex flex-col items-center gap-2">
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(date).toLocaleDateString("en-US", { weekday: "short" })}
+                    <div className="overflow-x-auto">
+                      <div className="flex gap-3 min-w-[640px]">
+                        {monthDays.map((date) => (
+                          <div key={date} className="flex flex-col items-center gap-1 w-6">
+                          <div className="text-[10px]"><span className="date-chip">{new Date(date).getDate()}</span></div>
+                            <Checkbox
+                              checked={isChecked(habit.id, date)}
+                              onCheckedChange={() => handleToggleCheckin(habit.id, date)}
+                              data-testid={`checkbox-habit-${habit.id}-${date}`}
+                            />
                           </div>
-                          <Checkbox
-                            checked={isChecked(habit.id, date)}
-                            onCheckedChange={() => handleToggleCheckin(habit.id, date)}
-                            data-testid={`checkbox-habit-${habit.id}-${date}`}
-                          />
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(date).getDate()}
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

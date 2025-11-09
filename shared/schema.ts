@@ -1,126 +1,107 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, date } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Shared Zod schemas and TypeScript types for JSON storage
+
+export const idSchema = z.string().min(1);
+export const ownerSchema = z.enum(["panda", "cookie", "both"]);
+export const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+// Users (kept for completeness, not actively used)
+export const insertUserSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+});
+export const userSchema = insertUserSchema.extend({
+  id: idSchema,
 });
 
-export const memories = pgTable("memories", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  imageUrl: text("image_url").notNull(),
-  caption: text("caption"),
-  date: date("date").notNull(),
-  owner: text("owner").notNull(), // "panda", "cookie", or "both"
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Memories
+export const insertMemorySchema = z.object({
+  imageUrl: z
+    .string()
+    .url()
+    .refine((v) => /^https?:\/\//i.test(v), { message: "imageUrl must be http(s) URL" }),
+  caption: z.string().optional().default(""),
+  date: dateString,
+  owner: ownerSchema,
+});
+export const memorySchema = insertMemorySchema.extend({
+  id: idSchema,
+  createdAt: z.string(),
 });
 
-export const gratitudeLogs = pgTable("gratitude_logs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  date: date("date").notNull(),
-  from: text("from").notNull(), // "panda" or "cookie"
-  to: text("to").notNull(), // "panda" or "cookie"
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Gratitude Logs
+export const insertGratitudeLogSchema = z.object({
+  date: dateString,
+  from: z.enum(["panda", "cookie"]),
+  to: z.enum(["panda", "cookie"]),
+  content: z.string().min(1),
+});
+export const gratitudeLogSchema = insertGratitudeLogSchema.extend({
+  id: idSchema,
+  createdAt: z.string(),
 });
 
-export const journalEntries = pgTable("journal_entries", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  date: date("date").notNull(),
-  owner: text("owner").notNull(), // "panda" or "cookie"
-  content: text("content").notNull(),
-  images: text("images").array().default(sql`'{}'`),
-  stickers: text("stickers").default('[]'), // JSON string of sticker positions
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Journal Entries
+export const insertJournalEntrySchema = z.object({
+  date: dateString,
+  owner: z.enum(["panda", "cookie"]),
+  content: z.string().min(1),
+  images: z.array(z.string()).optional().default([]),
+  stickers: z.string().optional().default("[]"),
+});
+export const journalEntrySchema = insertJournalEntrySchema.extend({
+  id: idSchema,
+  createdAt: z.string(),
 });
 
-export const tasks = pgTable("tasks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: text("title").notNull(),
-  description: text("description"),
-  owner: text("owner").notNull(), // "panda", "cookie", or "both"
-  completed: boolean("completed").default(false).notNull(),
-  dueDate: date("due_date"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Tasks
+export const insertTaskSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  owner: ownerSchema,
+  completed: z.boolean().optional().default(false),
+  dueDate: dateString.optional(),
+});
+export const taskSchema = insertTaskSchema.extend({
+  id: idSchema,
+  createdAt: z.string(),
+  completed: z.boolean(),
 });
 
-export const habits = pgTable("habits", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  owner: text("owner").notNull(), // "panda", "cookie", or "both"
-  color: text("color").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Habits
+export const insertHabitSchema = z.object({
+  name: z.string().min(1),
+  owner: ownerSchema,
+  color: z.string().min(1),
+});
+export const habitSchema = insertHabitSchema.extend({
+  id: idSchema,
+  createdAt: z.string(),
 });
 
-export const habitCheckins = pgTable("habit_checkins", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  habitId: varchar("habit_id").notNull().references(() => habits.id, { onDelete: 'cascade' }),
-  date: date("date").notNull(),
-  completed: boolean("completed").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+// Habit Checkins
+export const insertHabitCheckinSchema = z.object({
+  habitId: idSchema,
+  date: dateString,
+  completed: z.boolean().optional().default(false),
 });
-
-export const habitsRelations = relations(habits, ({ many }) => ({
-  checkins: many(habitCheckins),
-}));
-
-export const habitCheckinsRelations = relations(habitCheckins, ({ one }) => ({
-  habit: one(habits, {
-    fields: [habitCheckins.habitId],
-    references: [habits.id],
-  }),
-}));
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
-export const insertMemorySchema = createInsertSchema(memories).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertGratitudeLogSchema = createInsertSchema(gratitudeLogs).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertTaskSchema = createInsertSchema(tasks).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertHabitSchema = createInsertSchema(habits).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertHabitCheckinSchema = createInsertSchema(habitCheckins).omit({
-  id: true,
-  createdAt: true,
+export const habitCheckinSchema = insertHabitCheckinSchema.extend({
+  id: idSchema,
+  createdAt: z.string(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type Memory = typeof memories.$inferSelect;
+export type User = z.infer<typeof userSchema>;
 export type InsertMemory = z.infer<typeof insertMemorySchema>;
-export type GratitudeLog = typeof gratitudeLogs.$inferSelect;
+export type Memory = z.infer<typeof memorySchema>;
 export type InsertGratitudeLog = z.infer<typeof insertGratitudeLogSchema>;
-export type JournalEntry = typeof journalEntries.$inferSelect;
+export type GratitudeLog = z.infer<typeof gratitudeLogSchema>;
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
-export type Task = typeof tasks.$inferSelect;
+export type JournalEntry = z.infer<typeof journalEntrySchema>;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
-export type Habit = typeof habits.$inferSelect;
+export type Task = z.infer<typeof taskSchema>;
 export type InsertHabit = z.infer<typeof insertHabitSchema>;
-export type HabitCheckin = typeof habitCheckins.$inferSelect;
+export type Habit = z.infer<typeof habitSchema>;
 export type InsertHabitCheckin = z.infer<typeof insertHabitCheckinSchema>;
+export type HabitCheckin = z.infer<typeof habitCheckinSchema>;

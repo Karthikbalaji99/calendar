@@ -1,5 +1,8 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
+import path from "path";
+import { supabase } from "./supabase";
 import { storage } from "./storage";
 import {
   insertMemorySchema,
@@ -11,6 +14,36 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
+
+  app.post("/api/upload", upload.single("file"), async (req: Request & { file?: Express.Multer.File }, res) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "file required" });
+        return;
+      }
+      const ext = path.extname(req.file.originalname || "").toLowerCase() || ".png";
+      const filename = `${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
+      const { data, error } = await supabase.storage
+        .from("memories")
+        .upload(filename, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
+      if (error) {
+        const msg = String(error.message || error).toLowerCase();
+        if (msg.includes("row-level security") || msg.includes("rls")) {
+          return res.status(403).json({ error: "Storage write blocked by RLS. Use service role key on server or allow uploads via policies." });
+        }
+        if (msg.includes("bucket") && msg.includes("not") && msg.includes("exist")) {
+          return res.status(400).json({ error: "Missing storage bucket 'memories'. Create a public bucket named 'memories' in Supabase Storage." });
+        }
+        throw error;
+      }
+      const { data: pub } = supabase.storage.from("memories").getPublicUrl(data.path);
+      res.json({ url: pub.publicUrl });
+    } catch (e: any) {
+      console.error("upload error", e);
+      res.status(500).json({ error: e?.message || "upload failed" });
+    }
+  });
   app.get("/api/memories", async (req, res) => {
     try {
       const memories = await storage.getAllMemories();

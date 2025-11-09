@@ -9,6 +9,7 @@ import type { Memory, Task, GratitudeLog } from "@shared/schema";
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [filter, setFilter] = useState<"all" | "panda" | "cookie" | "both">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "memories" | "tasks" | "gratitude">("all");
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
 
   const { data: memories = [] } = useQuery<Memory[]>({ queryKey: ["/api/memories"] });
@@ -69,11 +70,15 @@ export default function CalendarPage() {
       return matchesDate && matchesFilter;
     });
 
-    return {
+    const result = {
       memories: filteredMemories,
       tasks: filteredTasks,
       gratitude: filteredGratitude,
     };
+    if (typeFilter === "memories") return { ...result, tasks: [], gratitude: [] };
+    if (typeFilter === "tasks") return { ...result, memories: [], gratitude: [] };
+    if (typeFilter === "gratitude") return { ...result, memories: [], tasks: [] };
+    return result;
   };
 
   const monthNames = [
@@ -122,10 +127,23 @@ export default function CalendarPage() {
             </Button>
           </div>
         </div>
-        <OwnerFilter value={filter} onChange={setFilter} />
+        <div className="flex items-center gap-3">
+          <OwnerFilter value={filter} onChange={setFilter} />
+          <select
+            className="border rounded-md px-2 py-1 bg-background"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as any)}
+            aria-label="Filter event type"
+          >
+            <option value="all">All</option>
+            <option value="memories">Memories</option>
+            <option value="tasks">Tasks</option>
+            <option value="gratitude">Gratitude</option>
+          </select>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-visible">
         <div className="grid grid-cols-7 gap-2 mb-2">
           {dayNames.map((day) => (
             <div
@@ -150,6 +168,8 @@ export default function CalendarPage() {
               events.memories.length > 0 || events.tasks.length > 0 || events.gratitude.length > 0;
             const isToday =
               new Date().toDateString() === new Date(year, month, day).toDateString();
+            const rowIndex = Math.floor((startingDayOfWeek + i) / 7);
+            const showAbove = rowIndex >= 4; // last two rows show tooltip above
 
             return (
               <div
@@ -160,15 +180,13 @@ export default function CalendarPage() {
                 data-testid={`calendar-date-${dateStr}`}
               >
                 <Card
-                  className={`h-full min-h-24 hover-elevate cursor-pointer transition-all ${
+                  className={`h-full min-h-24 hover-elevate cursor-pointer transition-all border-[hsl(var(--control))] ${
                     isToday ? "border-primary border-2" : ""
                   }`}
                 >
                   <CardContent className="p-3 h-full flex flex-col">
-                    <div
-                      className={`text-sm font-medium mb-2 ${isToday ? "text-primary font-bold" : ""}`}
-                    >
-                      {day}
+                    <div className="mb-2">
+                      <span className={`date-chip ${isToday ? "ring-1 ring-[hsl(var(--control))]" : ""}`}>{day}</span>
                     </div>
                     {hasEvents && (
                       <div className="flex gap-1 flex-wrap">
@@ -187,7 +205,7 @@ export default function CalendarPage() {
                 </Card>
 
                 {hoveredDate === dateStr && hasEvents && (
-                  <Card className="absolute z-10 top-full left-0 mt-2 w-64 shadow-lg">
+                  <Card className={`absolute z-50 left-0 w-64 shadow-lg ${showAbove ? "bottom-full mb-2" : "top-full mt-2"}`}>
                     <CardContent className="p-4 space-y-2">
                       <div className="font-semibold text-sm">
                         {monthNames[month]} {day}, {year}

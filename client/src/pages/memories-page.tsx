@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,8 @@ import bothIcon from "@assets/generated_images/Combined_panda_cookie_heart_093d2
 
 export default function MemoriesPage() {
   const [filter, setFilter] = useState<"all" | "panda" | "cookie" | "both">("all");
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
   const [formData, setFormData] = useState({
@@ -40,6 +42,7 @@ export default function MemoriesPage() {
     owner: "both" as "panda" | "cookie" | "both",
   });
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { data: memories = [], isLoading } = useQuery<Memory[]>({ queryKey: ["/api/memories"] });
 
@@ -73,9 +76,24 @@ export default function MemoriesPage() {
     createMutation.mutate(formData);
   };
 
-  const filteredMemories = memories.filter(
-    (memory) => filter === "all" || memory.owner === filter
-  );
+  const filteredMemories = useMemo(() => {
+    const inRange = (d: string) => {
+      if (fromDate && d < fromDate) return false;
+      if (toDate && d > toDate) return false;
+      return true;
+    };
+    return memories
+      .filter((m) => (filter === "all" || m.owner === filter) && inRange(m.date))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [memories, filter, fromDate, toDate]);
+
+  const groupedByDate = useMemo(() => {
+    const groups: Record<string, Memory[]> = {};
+    for (const m of filteredMemories) {
+      (groups[m.date] ||= []).push(m);
+    }
+    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [filteredMemories]);
 
   const getOwnerIcon = (owner: string) => {
     if (owner === "panda") return pandaIcon;
@@ -90,6 +108,10 @@ export default function MemoriesPage() {
           <h1 className="text-4xl font-bold">Memories</h1>
           <div className="flex items-center gap-4">
             <OwnerFilter value={filter} onChange={setFilter} />
+            <div className="hidden md:flex items-center gap-2">
+              <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-40" />
+              <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-40" />
+            </div>
             <Button onClick={() => setIsDialogOpen(true)} data-testid="button-add-memory">
               <Plus className="w-4 h-4 mr-2" />
               Add Memory
@@ -108,38 +130,48 @@ export default function MemoriesPage() {
             </div>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredMemories.map((memory) => (
-              <Card
-                key={memory.id}
-                className="overflow-hidden hover-elevate cursor-pointer transition-all"
-                onClick={() => setSelectedMemory(memory)}
-                data-testid={`memory-card-${memory.id}`}
-              >
-                <div className="aspect-square overflow-hidden bg-muted">
-                  <img
-                    src={memory.imageUrl}
-                    alt={memory.caption || "Memory"}
-                    className="w-full h-full object-cover"
-                  />
+          <div className="space-y-6">
+            {groupedByDate.map(([date, items]) => (
+              <div key={date} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="date-chip">{date}</span>
+                  <span className="text-xs text-muted-foreground">{items.length} photo(s)</span>
                 </div>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="w-3 h-3" />
-                      {memory.date}
-                    </div>
-                    <img src={getOwnerIcon(memory.owner)} alt={memory.owner} className="w-5 h-5" />
-                  </div>
-                  {memory.caption && <p className="text-sm line-clamp-2">{memory.caption}</p>}
-                </CardContent>
-              </Card>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {items.map((memory) => (
+                    <Card
+                      key={memory.id}
+                      className="overflow-hidden hover-elevate cursor-pointer transition-all"
+                      onClick={() => setSelectedMemory(memory)}
+                      data-testid={`memory-card-${memory.id}`}
+                    >
+                      <div className="aspect-square overflow-hidden bg-muted">
+                        <img
+                          src={memory.imageUrl}
+                          alt={memory.caption || "Memory"}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            {memory.date}
+                          </div>
+                          <img src={getOwnerIcon(memory.owner)} alt={memory.owner} className="w-5 h-5" />
+                        </div>
+                        {memory.caption && <p className="text-sm line-clamp-2">{memory.caption}</p>}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent data-testid="dialog-add-memory">
+          <DialogContent data-testid="dialog-add-memory" className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add Memory</DialogTitle>
             </DialogHeader>
@@ -153,6 +185,32 @@ export default function MemoriesPage() {
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                   data-testid="input-image-url"
                 />
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const fd = new FormData();
+                        fd.append("file", file);
+                        const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+                        if (!res.ok) throw new Error(await res.text());
+                        const { url } = await res.json();
+                        setFormData((prev) => ({ ...prev, imageUrl: url }));
+                        toast({ title: "Image uploaded", description: "Linked to memory." });
+                      } catch (err: any) {
+                        toast({ title: "Upload failed", description: String(err?.message || err), variant: "destructive" });
+                      }
+                    }}
+                  />
+                  <Button variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
+                    Upload Image
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="caption">Caption (Optional)</Label>
