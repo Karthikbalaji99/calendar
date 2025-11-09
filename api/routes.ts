@@ -1,5 +1,4 @@
 import type { Express, Request } from "express";
-import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
 import { getSupabase } from "./supabase.js";
@@ -13,7 +12,7 @@ import {
   insertHabitCheckinSchema,
 } from "./schema.js";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
   app.post("/api/upload", upload.single("file"), async (req: Request & { file?: Express.Multer.File }, res) => {
@@ -193,7 +192,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
 
-  return httpServer;
 }
