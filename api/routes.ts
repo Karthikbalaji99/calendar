@@ -2,8 +2,8 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
-import { getSupabase } from "./supabase";
-import { storage } from "./storage";
+import { getSupabase } from "./supabase.js";
+import { storage } from "./storage.js";
 import {
   insertMemorySchema,
   insertGratitudeLogSchema,
@@ -11,7 +11,7 @@ import {
   insertTaskSchema,
   insertHabitSchema,
   insertHabitCheckinSchema,
-} from "@shared/schema";
+} from "./schema.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });

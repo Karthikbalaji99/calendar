@@ -13,8 +13,8 @@ import {
   type InsertHabit,
   type HabitCheckin,
   type InsertHabitCheckin,
-} from "@shared/schema";
-import { getSupabase } from "./supabase";
+} from "./schema.js";
+import { getSupabase } from "./supabase.js";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
