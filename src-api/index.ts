@@ -30,5 +30,6 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 export default serverless(app, {
-  binary: true
+  binary: true,
+  basePath: '/api'
 });

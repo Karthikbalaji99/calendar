@@ -36450,7 +36450,8 @@ app.use((err, _req, res, _next) => {
   res.status(status).json({ message });
 });
 var index_default = (0, import_serverless_http.default)(app, {
-  binary: true
+  binary: true,
+  basePath: "/api"
 });
 export {
   index_default as default
