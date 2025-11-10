@@ -4,12 +4,10 @@ import { insertTaskSchema } from '../src-api/schema.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // Extract ID from URL if present (e.g., /api/tasks/123)
-    const url = req.url || '';
-    const pathMatch = url.match(/\/api\/tasks\/([a-zA-Z0-9-]+)/);
-    const taskId = pathMatch ? pathMatch[1] : null;
+    // Check for ID in query parameter (e.g., /api/tasks?id=123)
+    const taskId = req.query.id as string | undefined;
 
-    // Handle PATCH /api/tasks/:id
+    // Handle PATCH /api/tasks?id=123
     if (req.method === 'PATCH' && taskId) {
       const { completed } = req.body;
       

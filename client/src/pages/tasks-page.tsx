@@ -59,7 +59,7 @@ export default function TasksPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const res = await apiRequest("PATCH", `/api/tasks/${id}`, { completed });
+      const res = await apiRequest("PATCH", `/api/tasks?id=${id}`, { completed });
       return res.json();
     },
     onSuccess: () => {
